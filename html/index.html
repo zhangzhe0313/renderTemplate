@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>模版替换</title>
+</head>
+<body>
+    <ul id="ulZoon">
+    </ul>
+</body>
+<script src="../js/3rdlibs/jquery.js"></script>
+</html>
+
+<script type="text/template" id="testTemplate">
+    <div>
+        <span>{{liName}}<span>{{liName}}</span></span>
+        <div>
+            {{liSex}}
+        </div>
+    </div>
+</script>
+
+<script>
+    var dataObject = [{liName:'lilli', liSex: ''}];
+    // var dataObject = {liName:'lilli', liSex: 'male'};
+
+	//模板转换成html；
+	var renderTemplate = function (dataObj, templateId, emptyValue) {
+		var rstHtml = "";
+		var tmpHtml = document.getElementById(templateId).innerHTML;
+		var allKeys = tmpHtml.match(/\{\{(.*?)\}\}/g);
+		if (allKeys != null) {
+			if ((dataObj instanceof Array) && dataObj.length > 0) {
+				for (var i = 0; i < dataObj.length; i++) {
+					rstHtml += templateItemToHtml(allKeys, dataObj[i], tmpHtml, emptyValue);
+				}
+			} else {
+				rstHtml = templateItemToHtml(allKeys, dataObj, tmpHtml, emptyValue);
+			}
+		}
+		return rstHtml;
+	};
+
+	var templateItemToHtml = function (allKeys, dataObj, tmpHtml, emptyValue) {
+		var rstItemHtml = tmpHtml;
+		for (var i = 0; i < allKeys.length; i++) {
+			var tmpKey = allKeys[i].replace('{{', '').replace('}}', '');
+			//判断tmpkey是否为多层选择
+			if (tmpKey.indexOf('.') != -1) {
+				var keyArr = tmpKey.split('.');
+				var tmpObj = dataObj;
+				for (var j = 0; j < keyArr.length; j++) {
+					tmpObj = tmpObj == null ? {} : tmpObj[keyArr[j]];
+				};
+				if (tmpObj.toString() == "[object Object]") { //防止不存在值
+					tmpObj = emptyValue ? emptyValue : "-";
+				}
+				rstItemHtml = rstItemHtml.replace(allKeys[i], tmpObj);
+			} else {
+				if (dataObj[tmpKey] == undefined) {
+					dataObj[tmpKey] = emptyValue ? emptyValue : "-";
+				}
+				rstItemHtml = rstItemHtml.replace(allKeys[i], dataObj[tmpKey]);
+			}
+		}
+		return rstItemHtml;
+	}
+
+    $('#ulZoon').html(renderTemplate(dataObject, 'testTemplate', ' '));
+</script>
